@@ -21,7 +21,7 @@ df <- read.csv("data/cardio_cleaned.csv", header = TRUE)
 str(df)
 summary(df)
 
-# 1. Age Distribution
+# Age Distribution
 gg_age <- ggplot(df, aes(x = age_years)) +
   geom_histogram(bins = 30, fill = "steelblue") +
     xlab("Age (Years)") +
@@ -160,14 +160,14 @@ ggplot(data, aes(x = factor(cholesterol))) +
   xlab("Cholesterol Level (1: Normal, 2: Above Normal, 3: Well Above Normal)") +
   ggtitle("Cholesterol Level Distribution")
 
-# 3. Cardiovascular disease class balance
+# Cardiovascular disease class balance
 gg_cardio <- ggplot(df, aes(x = factor(cardio))) +
   geom_bar(fill = "darkred") +
   xlab("Cardiovascular Disease (0 = No, 1 = Yes)") +
   ggtitle("Distribution of Cardiovascular Disease Cases")
 gg_cardio
 
-# 4. Age vs Disease status (boxplot)
+# Age vs Disease status (boxplot)
 gg_age_cardio <- ggplot(df, aes(x = factor(cardio), y = age_years, fill = factor(cardio))) +
   geom_boxplot() +
   xlab("Cardiovascular Disease (0 = No, 1 = Yes)") +
@@ -176,7 +176,7 @@ gg_age_cardio <- ggplot(df, aes(x = factor(cardio), y = age_years, fill = factor
   theme(legend.position = "none")
 gg_age_cardio
 
-# 5. Smoking vs. Disease (stacked proportion)
+# Smoking vs. Disease (stacked proportion)
 
 gg_smoke <- ggplot(df, aes(x = factor(smoke), fill = factor(cardio))) +
   geom_bar(position = "fill") +
@@ -188,12 +188,12 @@ gg_smoke <- ggplot(df, aes(x = factor(smoke), fill = factor(cardio))) +
   labs(fill = "CVD (0 = No, 1 = Yes")
 gg_smoke
 
-# 6. Correlation matrix for numeric variables
+# Correlation matrix for numeric variables
 numeric_vars <- df%>%select_if(is.numeric)
 cor_matrix <- cor(numeric_vars)
 corrplot(cor_matrix, method = "color", type = "upper", tl.cex = 0.7)
 
-# 7. BMI distribution by disease
+# BMI distribution by disease
 gg_bmi <- ggplot(df, aes(x = bmi, fill = factor(cardio))) +
   geom_histogram(position = "identity", alpha = 0.5, bins = 30) +
   xlab("BMI") + 
@@ -219,3 +219,43 @@ gg_alcohol <- ggplot(data, aes(x = factor(alco), fill = factor(cardio))) +
 # Display gg_alcohol
 gg_alcohol
 
+# Required variables are treated correctly
+df$gluc <- factor(df$gluc, levels = c(1, 2, 3),
+                  labels = c("Normal", "Above Normal", "Well Above Normal"))
+df$active <- factor(df$active, levels = c(0, 1), labels = c("Inactive", "Active"))
+df$cardio <- factor(df$cardio, levels = c(0, 1), labels = c("No", "Yes"))
+
+
+# Height Distribution
+gg_height <- ggplot(df, aes(x = height)) +
+  geom_histogram(bins = 30, fill = "seagreen") +
+  xlab("Height (cm)") +
+  ggtitle("Height Distribution of Patients")
+gg_height
+
+# Weight Distribution
+gg_weight <- ggplot(df, aes(x = weight)) +
+  geom_histogram(bins = 30, fill = "purple") +
+  xlab("Weight (kg)") +
+  ggtitle("Weight Distribution of Patients")
+gg_weight
+
+# Glucose Levels by Disease Status
+gg_gluc <- ggplot(df, aes(x = gluc, fill = cardio)) +
+  geom_bar(position = "fill") +
+  scale_y_continuous(labels = scales::percent) +
+  xlab("Glucose Level") +
+  ylab("Proportion of Patients") +
+  ggtitle("Glucose Levels by Cardiovascular Disease Status") +
+  labs(fill = "CVD")
+gg_gluc
+
+# Physical Activity by Disease Status
+gg_active <- ggplot(df, aes(x = active, fill = cardio)) +
+  geom_bar(position = "fill") +
+  scale_y_continuous(labels = scales::percent) +
+  xlab("Physical Activity") +
+  ylab("Proportion of Patients") +
+  ggtitle("Physical Activity by Cardiovascular Disease Status") +
+  labs(fill = "CVD")
+gg_active
