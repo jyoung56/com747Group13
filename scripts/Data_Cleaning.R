@@ -50,13 +50,16 @@ df <- df %>% filter(ap_lo > 40 & ap_lo < 200)
 # Remove duplicate rows
 df <- df[!duplicated(df), ]
 
-# Add new column for age in years (Dataset uses days)
+# Add new column for age in years (Dataset uses days) and round down to the nearest whole number
 df <- df%>%
-  mutate(age_years = age / 365)
+  mutate(age_years = floor(age / 365))
 
 # Feature Engineering
 # Create BMI variable
 df$bmi <- df$weight / ((df$height / 100)^2)
+
+df <- df %>%
+  mutate(bmi = weight / ((height / 100) ^ 2))  # height is in cm
 
 # Convert categorical variables to factors
 df$gender <- as.factor(df$gender)
@@ -68,6 +71,6 @@ df$active <- as.factor(df$active)
 df$cardio <- as.factor(df$cardio)
 
 # Save the cleaned dataset
-write.csv(df, "cardio_cleaned.csv", row.names = FALSE)
+write.csv(df, "data/cardio_cleaned.csv", row.names = FALSE)
 
 print("Data exploration, cleaning, and preprocessing completed. Cleaned dataset saved as cardio_cleaned.csv")

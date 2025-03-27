@@ -1,89 +1,68 @@
-# install libraries
-install.packages("corrplot")
-install.packages("ggplot2")
-install.packages("dplyr")
+# Load required libraries
+library(ggplot2)
+library(dplyr)
+library(corrplot)
+library(scales)
 
-# Load necessary libraries
-library("corrplot")
-library("ggplot2")
-library("dplyr")
+# Load the dataset
+df <- read.csv("data/cardio_cleaned.csv", header = TRUE)
 
-# Check structure of the data
-str(data)
 
-# Summary statistics for all columns
-summary(data)
+# Preview data
+str(df)
+summary(df)
 
-# Check for missing values in dataset
-colSums(is.na(data))
+# 1. Age Distribution
+gg_age <- ggplot(df, aes(x = age_years)) +
+  geom_histogram(bins = 30, fill = "steelblue") +
+    xlab("Age (Years)") +
+    ggtitle("Age Distribution of Patients")
+gg_age
 
-# Add new column for age in years (Dataset uses days)
-data <- data%>%
-  mutate(age_years = age / 365)
-
-# Visualize age distribution
-ggplot(data, aes(x = age_years)) +
-  geom_histogram(bins = 30) +
-  xlab("Age (Years)") +
-  ggtitle("Age Distribution Of Patients")
-
-# Visualize distribution of cholesterol levels
-ggplot(data, aes(x = factor(cholesterol))) +
+# 2. Cholesterol Levels (categorical)
+gg_chol <- ggplot(df, aes(x = cholesterol, fill = cholesterol)) +
   geom_bar() +
-  xlab("Cholesterol Level (1: Normal, 2: Above Normal, 3: Well Above Normal") +
-  ggtitle("Cholesterol Level Distribution")
+  xlab("Cholesterol Level") + 
+  ggtitle("Cholesterol Levels in Dataset") +
+  theme(legend.position = "none")
+gg_chol
 
-# Correlation analysis of numeric variables
-numeric_data <- data[, sapply(data, is.numeric)]
-corr_matrix <- cor(numeric_data)
-corrplot(corr_matrix, method = "color", type = "upper")
-
-# Visualize the count of cardiovascular disease cases
-ggplot(data, aes(x = factor(cardio))) +
-  geom_bar(fill = "steelblue") +
-  xlab("Cardiovascular Disease (0: No, 1: Yes)") +
+# 3. Cardiovascular disease class balance
+gg_cardio <- ggplot(df, aes(x = factor(cardio))) +
+  geom_bar(fill = "darkred") +
+  xlab("Cardiovascular Disease (0 = No, 1 = Yes)") +
   ggtitle("Distribution of Cardiovascular Disease Cases")
+gg_cardio
 
-# Boxplot to compare age distribution between those with and without CVD
-gg_age_cardio <- ggplot(data, aes(x = factor(cardio), y = age_years)) +
-  geom_boxplot(fill = "lightblue") +
+# 4. Age vs Disease status (boxplot)
+gg_age_cardio <- ggplot(df, aes(x = factor(cardio), y = age_years, fill = factor(cardio))) +
+  geom_boxplot() +
   xlab("Cardiovascular Disease (0 = No, 1 = Yes)") +
   ylab("Age (Years)") +
-  ggtitle("Age Distribution by Cardiovascular Disease")
-
-# Display gg_age_cardio
+  ggtitle("Age Distribution by Cardiovascular Disease") +
+  theme(legend.position = "none")
 gg_age_cardio
 
-# Compare smoking habits between those with and without CVD
-gg_smoking <- ggplot(data, aes(x = factor(smoke), fill = factor(cardio))) +
+# 5. Smoking vs. Disease (stacked proportion)
+
+gg_smoke <- ggplot(df, aes(x = factor(smoke), fill = factor(cardio))) +
   geom_bar(position = "fill") +
-  scale_y_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = percent) + 
   xlab("Smoking (0 = No, 1 = Yes)") +
   ylab("Proportion of Patients") +
-  ggtitle("Smoking Habits by Cardiovascular Disease Status") +
-  labs(fill = "CVD (0 = No, 1 = Yes)")
-
-# Display gg_smoking
-gg_smoking
-
-# Relationship between alcohol status intake and cardiovascular disease
-gg_alcohol <- ggplot(data, aes(x = factor(alco), fill = factor(cardio))) +
-  geom_bar(position = "fill") +
-  scale_y_continuous(labels = scales::percent) +
-  xlab("Alcohol Consumption (0 = No, 1 = Yes)") +
-  ylab("Proportion of Patients") +
-  ggtitle("Alcohol Consumption by Cardiovascular Disease Status") +
-  labs(fill = "CVD (0 = No, 1 = Yes)")
-
-# Display gg_alcohol
-gg_alcohol
-
-# Compare systolic blood pressure distribution for patients
-gg_bp <- ggplot(data, aes(x = ap_hi, fill = factor(cardio))) +
-  geom_histogram(position = "identity", alpha = 0.5, bins = 30) +
-  xlab("Systolic Blood Pressure (ap_hi)") +
-  ggtitle("Systolic Blood Pressure Distribution by Disease Status") +
+  ggtitle("Smoking Habits of Cardiovascular Disease Status") + 
   labs(fill = "CVD (0 = No, 1 = Yes")
+gg_smoke
 
-# Display gg_bp
-gg_bp
+# 6. Correlation matrix for numeric variables
+numeric_vars <- df%>%select_if(is.numeric)
+cor_matrix <- cor(numeric_vars)
+corrplot(cor_matrix, method = "color", type = "upper", tl.cex = 0.7)
+
+# 7. BMI distribution by disease
+gg_bmi <- ggplot(df, aes(x = bmi, fill = factor(cardio))) +
+  geom_histogram(position = "identity", alpha = 0.5, bins = 30) +
+  xlab("BMI") + 
+  ggtitle("BMI Distribution by Cardiovascular Disease") + 
+  labs(fill = "CVD (0 = No, 1 = Yes)")
+gg_bmi
