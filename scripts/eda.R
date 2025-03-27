@@ -5,8 +5,6 @@ library(dplyr)
 library(corrplot)
 library(scales)
 
-# EDA for height, weight, glucose and activity could be useful
-
 
 # install libraries
 install.packages("corrplot")
