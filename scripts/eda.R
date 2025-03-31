@@ -1,3 +1,7 @@
+# install libraries
+install.packages("corrplot")
+install.packages("ggplot2")
+install.packages("dplyr")
 
 # Load required libraries
 library(ggplot2)
@@ -5,19 +9,16 @@ library(dplyr)
 library(corrplot)
 library(scales)
 
-
-# install libraries
-install.packages("corrplot")
-install.packages("ggplot2")
-install.packages("dplyr")
-
 # Load the dataset
 df <- read.csv("data/cardio_cleaned.csv", header = TRUE)
-
 
 # Preview data
 str(df)
 summary(df)
+
+# Add new column for age in years (Dataset uses days)
+data <- data%>%
+  mutate(age_years = age / 365)
 
 # Age Distribution
 gg_age <- ggplot(df, aes(x = age_years)) +
@@ -34,9 +35,6 @@ gg_chol <- ggplot(df, aes(x = cholesterol, fill = cholesterol)) +
   theme(legend.position = "none")
 gg_chol
 
-# Add new column for age in years (Dataset uses days)
-data <- data%>%
-  mutate(age_years = age / 365)
 
 # Comparing Gender Distribution
 # Important for ethical considerations, need to consider how this data effects the results and if it's a fair distribution
@@ -89,7 +87,7 @@ ggplot(data, aes(x = factor(gender), fill = factor(smoke))) +
   xlab("Gender (1 = Women, 2 = Men)") +
   ylab("Proportion of Patients") +
   ggtitle("Smoking against Gender") +
-  labs(fill = "Alcohol (0 = No, 1 = Yes)")
+  labs(fill = "Smoking (0 = No, 1 = Yes)")
 
 # Comparing Alcohol consumption by gender
 # Alcohol consumption is also more prevalent in men, but less so than smoking
@@ -183,7 +181,7 @@ gg_smoke <- ggplot(df, aes(x = factor(smoke), fill = factor(cardio))) +
   ylab("Proportion of Patients") +
 
   ggtitle("Smoking Habits of Cardiovascular Disease Status") + 
-  labs(fill = "CVD (0 = No, 1 = Yes")
+  labs(fill = "CVD (0 = No, 1 = Yes)")
 gg_smoke
 
 # Correlation matrix for numeric variables

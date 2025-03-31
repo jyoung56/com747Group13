@@ -13,7 +13,7 @@ invisible(sapply(packages, install_if_missing))
 df <- read.csv("data/cardio_train.csv", sep = ";")
 
 
-# View basic information
+# View basic information about the dataset
 print("Structure of dataset:")
 str(df)
 
@@ -29,13 +29,15 @@ print(names(df))
 print("First few rows of dataset:")
 head(df)
 
-# Exploratory Data Analysis
+# Basic Exploratory Data Analysis, more in eda.R
 # Distribution of target variable (cardio)
 ggplot(df, aes(x = factor(cardio))) +
   geom_bar(fill = "steelblue") +
   labs(title = "Distribution of Cardiovascular Disease", x = "Cardio (0=No, 1=Yes)", y = "Count")
 
 # Correlation matrix plot
+# Notable correlations: 
+#   gender&height, height&weight, gender&smoke, chol&gluc, age&cardio, weight&cardio, chol&cardio
 numeric_df <- df[sapply(df, is.numeric)]
 cor_matrix <- cor(numeric_df)
 corrplot(cor_matrix, method = "color", type = "upper", tl.cex = 0.8)
