@@ -1,9 +1,8 @@
 # COM747 GROUP 13 COURSEWORK 2  
 ## Hephzibah, Joseph, Mooed & Arslan  
 
-### Chosen Dataset  
-**Cardiovascular Disease Dataset**  
-[Link to Dataset](https://www.kaggle.com/datasets/sulianova/cardiovascular-disease-dataset/data)  
+### Chosen Dataset    
+[**Cardiovascular Disease Dataset**](https://www.kaggle.com/datasets/sulianova/cardiovascular-disease-dataset/data)  
 
 | Feature | Type | Column Name | Description |
 |---------|------|------------|-------------|
