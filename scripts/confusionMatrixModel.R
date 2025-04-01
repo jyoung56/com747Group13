@@ -1,4 +1,7 @@
 # Install and load required libraries
+install.packages("recipes")
+install.packages("caret")
+
 packages <- c("tidyverse", "caret")
 install_if_missing <- function(p) {
   if (!require(p, character.only = TRUE)) {
@@ -8,8 +11,10 @@ install_if_missing <- function(p) {
 }
 invisible(sapply(packages, install_if_missing))
 
+library("caret")
+
 # Load the feature-engineered dataset
-df <- read.csv("cardio_feature_engineered.csv")
+df <- read.csv("data/cardio_feature_engineered.csv")
 
 # Split dataset into training (80%) and testing (20%) sets
 set.seed(123)
@@ -31,6 +36,6 @@ log_conf_matrix <- confusionMatrix(as.factor(log_predicted_classes), testData$ca
 print(log_conf_matrix)
 
 # Save the model
-saveRDS(log_model, "cardio_logistic_model.rds")
+saveRDS(log_model, "models/cardio_logistic_model.rds")
 
 cat("Logistic Regression model training completed. Model saved as cardio_logistic_model.rds")

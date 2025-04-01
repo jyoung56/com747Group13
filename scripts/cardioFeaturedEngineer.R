@@ -14,7 +14,7 @@ install_if_missing <- function(p) {
 invisible(sapply(packages, install_if_missing))
 
 # Load the cleaned dataset (update the path if needed)
-df <- read.csv("cardio_cleaned.csv")
+df <- read.csv("data/cardio_cleaned.csv")
 
 # --------------------------
 # Feature Engineering

@@ -9,7 +9,7 @@ install_if_missing <- function(p) {
 invisible(sapply(packages, install_if_missing))
 
 # Load the feature-engineered dataset
-df <- read.csv("cardio_feature_engineered.csv")
+df <- read.csv("data/cardio_feature_engineered.csv")
 
 # Split dataset into training (80%) and testing (20%) sets
 set.seed(123)  # For reproducibility
@@ -28,6 +28,6 @@ conf_matrix <- confusionMatrix(predictions, testData$cardio)
 print(conf_matrix)
 
 # Save the trained model
-saveRDS(model, "cardio_rf_model.rds")
+saveRDS(model, "model/cardio_rf_model.rds")
 
 cat("Model training completed. Model saved as cardio_rf_model.rds")
