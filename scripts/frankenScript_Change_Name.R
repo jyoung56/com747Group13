@@ -432,6 +432,15 @@ summary(log_model)
 exp(coef(log_model))
 exp(cbind(OR = coef(log_model), confint(log_model)))
 
+# AUC ROC - Sensitivity vs specificity
+roc_object <- roc( testData$cardio, log_predictions)
+ggroc(roc_object) + ggtitle("ROC Curve for Logistic Regression Model")
+# AUC = 0.7897, the closer the auc is to 1, the better the model
+# Close to 1: Good at distinguishing between positive and negative classes
+# Close to 0.5: Performs no better than random guessing
+# https://www.geeksforgeeks.org/plotting-roc-curve-in-r-programming/
+auc(roc_object)
+
 # Saving the model
 # We might want to move this up before the evaluation, not sure it really matters
 saveRDS(log_model, "models/cardio_logistic_model.rds")
