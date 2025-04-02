@@ -495,15 +495,23 @@ ggsave("results/logistic/cvdByGender.png", plot = genderPlot)
 smokePlot <- ggplot(testData, aes(x = smoke, y = log_predictions)) +
   stat_summary(fun = mean, geom = "bar", position = position_dodge(), fill="steelblue") +
   labs(title = "Probability of CVD by Smoking",
-       x = "Gender (0 = Does not smoke, 1 = Does smoke)",
+       x = "Smoking (0 = Does not smoke, 1 = Does smoke)",
        y = "Predicted Probability of CVD")
 ggsave("results/logistic/cvdBySmoke.png", plot = smokePlot)
+
+
+alcoPlot <- ggplot(testData, aes(x = smoke, y = log_predictions)) +
+  stat_summary(fun = mean, geom = "bar", position = position_dodge(), fill="steelblue") +
+  labs(title = "Probability of CVD by Alcohol",
+       x = "Alcohol (0 = Does not drink, 1 = Does drink)",
+       y = "Predicted Probability of CVD")
+ggsave("results/logistic/cvdByAlco.png", plot = alcoPlot)
 
 
 activePlot <- ggplot(testData, aes(x = active, y = log_predictions)) +
   stat_summary(fun = mean, geom = "bar", position = position_dodge(), fill="steelblue") +
   labs(title = "Probability of CVD by Activity",
-       x = "Gender (0 = Inactive, 1 = Active)",
+       x = "Activity (0 = Inactive, 1 = Active)",
        y = "Predicted Probability of CVD")
 ggsave("results/logistic/cvdByActivity.png", plot = activePlot)
 
