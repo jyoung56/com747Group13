@@ -24,16 +24,6 @@ print("Data Loading Completed.")
 
 # SECTION TWO: Data Cleansing
 
-# Install and load required libraries
-packages <- c("tidyverse", "ggplot2", "dplyr", "DataExplorer", "caret", "corrplot")
-install_if_missing <- function(p) {
-  if (!require(p, character.only = TRUE)) {
-    install.packages(p, dependencies = TRUE)
-    library(p, character.only = TRUE)
-  }
-}
-invisible(sapply(packages, install_if_missing))
-
 # Load the dataset (make sure cardio_train.csv is in your working directory)
 df <- read.csv("data/cardio_train.csv", sep = ";")
 
@@ -271,7 +261,7 @@ gg_age_cardio
 
 gg_smoke <- ggplot(df, aes(x = factor(smoke), fill = factor(cardio))) +
   geom_bar(position = "fill") +
-  scale_y_continuous(labels = percent) + 
+  scale_y_continuous(labels = scales::percent) + 
   xlab("Smoking (0 = No, 1 = Yes)") +
   ylab("Proportion of Patients") +
   ggtitle("Smoking Habits of Cardiovascular Disease Status") + 
@@ -377,7 +367,10 @@ df <- cbind(df, model.matrix(~ cholesterol + gluc - 1, data = df))
 df <- df %>% select(-cholesterol, -gluc)
 
 # Convert cardio values to factors
-df$cardio <- factor(df$cardio, levels = c(0,1), labels = c("No", "Yes"))
+# Changing this temporarily, model will need this as 0 or 1
+#df$cardio <- factor(df$cardio, levels = c(0,1), labels = c("No", "Yes"))
+df$cardio <- factor(df$cardio, levels = c(0,1))
+
 
 # Save 
 write.csv(df, "data/cardio_model_ready.csv")
@@ -409,5 +402,48 @@ write.csv(trainingData, "data/trainingData.csv", row.names = FALSE)
 write.csv(testData, "data/testData.csv", row.names = FALSE)
 
 print("Data splitting completed. Datasets saved as testData.csv and trainingData.csv")
+
+# SECTION SIX: Creation and evaluation of a simple logistic regression model
+# We need to consider why we've used this and alternative things
+# Do we want to see if we can predict it based on only one category like age or BMI?
+# This model has an accuracy of roughly 0.7279 which is pretty decent! 
+# This is adapted from the lab with the logistic regression tutorial & the confusionMatrixModel script
+
+log_model <- glm(cardio ~., data= trainingData, family=binomial(link="logit"))
+
+# Make Predictions
+log_predictions <- predict(log_model, testData, type = "response")
+log_predicted_classes <- ifelse(log_predictions > 0.5, 1, 0)
+
+# Begin evaluation of model using a confusion matrix
+# Big issues here, data and reference should be factors with the same levels
+# Fix here, but if have time need to go back and check
+log_conf_matrix <- confusionMatrix(
+  factor(log_predicted_classes, levels = levels(factor(testData$cardio))), 
+  factor(testData$cardio, levels = levels(factor(testData$cardio)))
+)
+
+print(log_conf_matrix)
+
+# Printing a summary of the model here
+summary(log_model)
+
+# computing odds ratios and confidence intervals
+exp(coef(log_model))
+exp(cbind(OR = coef(log_model), confint(log_model)))
+
+# Saving the model
+# We might want to move this up before the evaluation, not sure it really matters
+saveRDS(log_model, "models/cardio_logistic_model.rds")
+
+print("Logistic Regression model created and saved as cardio_logistic_model.rds")
+
+# Now need to do proper evaluation looking at the stats calculated above. This is where the marks are for creating the model
+# Will work on this next
+ 
+# SECTION SEVEN: Clustering model
+# Will work on this next, I think since there's such an emphasis in the labs on this it would be the best move to create this
+# Especially given the last guest seminar which was fascinating, but I don't think we need to be worrying about latent factors
+# as we're trying to predict a non-latent factor
 
 
