@@ -335,11 +335,6 @@ gg_active <- ggplot(df, aes(x = active, fill = cardio)) +
 gg_active
 
 
-
-
-
-
-
 # SECTION FOUR: Feature Engineering
 
 # Load cleaned data
@@ -434,21 +429,109 @@ exp(cbind(OR = coef(log_model), confint(log_model)))
 
 # AUC ROC - Sensitivity vs specificity
 roc_object <- roc( testData$cardio, log_predictions)
-ggroc(roc_object) + ggtitle("ROC Curve for Logistic Regression Model")
+rocCurve <- ggroc(roc_object) + ggtitle("ROC Curve for Logistic Regression Model")
+ggsave("results/logistic/roc.png", plot = rocCurve)
+
 # AUC = 0.7897, the closer the auc is to 1, the better the model
 # Close to 1: Good at distinguishing between positive and negative classes
 # Close to 0.5: Performs no better than random guessing
 # https://www.geeksforgeeks.org/plotting-roc-curve-in-r-programming/
 auc(roc_object)
 
+# Trying out logistic curves
+# Original go results in a very spiky plot, this makes things readable
+# The shaded section shows the confidence interval, automatically 95%
+ageLC <- ggplot(testData, aes(x = age_years, y = log_predictions)) +
+  geom_smooth(method = "loess", color = "steelblue") +
+  labs(title = "Smoothed Logistic Regression Curve for age",
+       x = "Age in years",
+       y = "Probability of CVD")
+ggsave("results/logistic/cvdByAgeLC.png", plot = ageLC)
+
+bmiLC <- ggplot(testData, aes(x = bmi, y = log_predictions)) +
+  geom_smooth(method = "loess", color = "steelblue") +
+  labs(title = "Logistic Regression Curve for BMI",
+       x = "BMI",
+       y = "Predicted Probability of CVD")
+ggsave("results/logistic/cvdByBMILC.png", plot = bmiLC)
+
+
+ap_hiLC <- ggplot(testData, aes(x = ap_hi, y = log_predictions)) +
+  geom_smooth(method = "loess", color = "steelblue") +
+  labs(title = "Logistic Regression Curve for ap_hi",
+       x = "ap_hi",
+       y = "Predicted Probability of CVD")
+ggsave("results/logistic/cvdByap_hiLC.png", plot = ap_hiLC)
+
+ap_loLC <- ggplot(testData, aes(x = ap_lo, y = log_predictions)) +
+  geom_smooth(method = "loess", color = "steelblue") +
+  labs(title = "Logistic Regression Curve for ap_lo",
+       x = "ap_lo",
+       y = "Predicted Probability of CVD")
+ggsave("results/logistic/cvdByap_loLC.png", plot = ap_loLC)
+
+
+# HEYO! Gender is NOT a continuous variable, however we have it represented as 1 or 2. 
+# This plot shows us that this model predicts that men (2) are more likely to have CVD,
+# however it presents it as a continuous variable. The question is do we leave it as this,
+# or do we find a new type of plot that represents binary variables better?
+# I really like the look of this graph, it shows things clearly
+genderPlotLC <- ggplot(testData, aes(x = gender, y = log_predictions)) +
+  geom_smooth(method = "loess", color = "steelblue") +
+  labs(title = "Logistic Regression Curve for Gender",
+       x = "Gender (1 = Woman, 2 = Man)",
+       y = "Predicted Probability of CVD")
+ggsave("results/logistic/cvdByGenderLC.png", plot = genderPlotLC)
+
+# Not as nice graph, but technically represents things better
+genderPlot <- ggplot(testData, aes(x = gender, y = log_predictions)) +
+  stat_summary(fun = mean, geom = "bar", position = position_dodge(), fill="steelblue") +
+  labs(title = "Probability of CVD by Gender",
+       x = "Gender (1 = Woman, 2 = Man)",
+       y = "Predicted Probability of CVD")
+ggsave("results/logistic/cvdByGender.png", plot = genderPlot)
+
+
+smokePlot <- ggplot(testData, aes(x = smoke, y = log_predictions)) +
+  stat_summary(fun = mean, geom = "bar", position = position_dodge(), fill="steelblue") +
+  labs(title = "Probability of CVD by Smoking",
+       x = "Gender (0 = Does not smoke, 1 = Does smoke)",
+       y = "Predicted Probability of CVD")
+ggsave("results/logistic/cvdBySmoke.png", plot = smokePlot)
+
+
+activePlot <- ggplot(testData, aes(x = active, y = log_predictions)) +
+  stat_summary(fun = mean, geom = "bar", position = position_dodge(), fill="steelblue") +
+  labs(title = "Probability of CVD by Activity",
+       x = "Gender (0 = Inactive, 1 = Active)",
+       y = "Predicted Probability of CVD")
+ggsave("results/logistic/cvdByActivity.png", plot = activePlot)
+
+
+# I wanted to explore the possibility of smoking interfering with the gender predictions
+# This doesn't seem to be the case, this shows the probability of men and women who smoke and don't
+# The model reckons we should all take up smoking
+genderSmoke <- ggplot(testData, aes(x = interaction(gender, smoke), y = log_predictions, fill = interaction(gender, smoke))) +
+  stat_summary(fun = mean, geom = "bar", position = position_dodge()) +
+  labs(title = "Probability of CVD by Gender and Smoking",
+       x = "Group",
+       y = "Mean Probability of CVD")
+ggsave("results/logistic/cvdByGenderSmoking.png", plot = genderSmoke)
+
+# Similarly, the odds of having CVD and drinking alcohol are lower across the board
+genderAlco <- ggplot(testData, aes(x = interaction(gender, alco), y = log_predictions, fill = interaction(gender, alco))) +
+  stat_summary(fun = mean, geom = "bar", position = position_dodge()) +
+  labs(title = "Probability of CVD by Gender and Alcohol",
+       x = "Group",
+       y = "Mean Probability of CVD")
+ggsave("results/logistic/cvdByGenderAlcohol.png", plot = genderAlco)
+
 # Saving the model
 # We might want to move this up before the evaluation, not sure it really matters
-saveRDS(log_model, "models/cardio_logistic_model.rds")
+saveRDS(log_model, "results/models/cardio_logistic_model.rds")
 
 print("Logistic Regression model created and saved as cardio_logistic_model.rds")
 
-# Now need to do proper evaluation looking at the stats calculated above. This is where the marks are for creating the model
-# Will work on this next
  
 # SECTION SEVEN: Clustering model
 # Will work on this next, I think since there's such an emphasis in the labs on this it would be the best move to create this
