@@ -410,6 +410,7 @@ log_model <- glm(cardio ~., data= trainingData, family=binomial(link="logit"))
 log_predictions <- predict(log_model, testData, type = "response")
 log_predicted_classes <- ifelse(log_predictions > 0.5, 1, 0)
 
+
 # Begin evaluation of model using a confusion matrix
 # Big issues here, data and reference should be factors with the same levels
 # Fix here, but if have time need to go back and check
@@ -540,7 +541,48 @@ saveRDS(log_model, "results/models/cardio_logistic_model.rds")
 
 print("Logistic Regression model created and saved as cardio_logistic_model.rds")
 
- 
+# SECTION SIX-B: Creation and Evaluation of a K-Nearest Neighbors (KNN) Model
+# We're using KNN to classify whether a person has cardiovascular disease based on all available features.
+# This approach looks at the 'k' nearest patients and makes a prediction based on what class most of them belong to.
+
+# Load caret if not already loaded
+library(caret)
+
+# Train the KNN model using 10-fold cross-validation
+# We scale the data to ensure fairness in distance calculations
+knn_model <- train(cardio ~ ., data = trainingData, method = "knn",preProcess = c("center", "scale"), trControl = trainControl(method = "cv", number = 10))
+
+# Make predictions on the test set
+knn_predictions <- predict(knn_model, testData)
+
+# Evaluate the model using a confusion matrix
+knn_conf_matrix <- confusionMatrix(knn_predictions, testData$cardio)
+
+# Display the results
+print("📊 Confusion Matrix for KNN Model:")
+print(knn_conf_matrix)
+
+# Visualize predicted CVD status across BMI 
+knn_bmi_plot <- ggplot(testData, aes(x = bmi, fill = knn_predictions)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "KNN: Predicted CVD Probability by BMI",
+       x = "BMI", 
+       fill = "Predicted CVD")
+ggsave("results/knn/knnByBMI.png", plot = knn_bmi_plot)
+
+# Visualize predicted CVD by gender
+knn_gender_plot <- ggplot(testData, aes(x = gender, fill = knn_predictions)) + geom_bar(position = "fill") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(title = "KNN: Gender Distribution by Predicted CVD",
+       x = "Gender (1 = Woman, 2 = Man)",
+       y = "Proportion of Patients",
+       fill = "Predicted CVD")
+ggsave("results/knn/knnByGender.png", plot = knn_gender_plot)
+
+# Save the trained model for later evaluation
+saveRDS(knn_model, "results/models/cardio_knn_model.rds")
+print("💾 KNN model trained and saved as cardio_knn_model.rds")
+
 # SECTION SEVEN: Clustering model
 # Will work on this next, I think since there's such an emphasis in the labs on this it would be the best move to create this
 # Especially given the last guest seminar which was fascinating, but I don't think we need to be worrying about latent factors
