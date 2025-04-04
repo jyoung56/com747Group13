@@ -583,7 +583,6 @@ ggsave("results/knn/knnByGender.png", plot = knn_gender_plot)
 saveRDS(knn_model, "results/models/cardio_knn_model.rds")
 print("💾 KNN model trained and saved as cardio_knn_model.rds")
 
-
  
 # SECTION SEVEN: Clustering model
 # Will work on this next, I think since there's such an emphasis in the labs on this it would be the best move to create this
