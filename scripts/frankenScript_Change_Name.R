@@ -1,5 +1,5 @@
 # IMPORTING AND LOADING LIBRARIES
-packages <- c("tidyverse", "ggplot2", "dplyr", "DataExplorer", "caret", "corrplot")
+packages <- c("tidyverse", "ggplot2", "dplyr", "DataExplorer", "caret", "corrplot","pROC")
 install_if_missing <- function(p) {
   if (!require(p, character.only = TRUE)) {
     install.packages(p, dependencies = TRUE)
@@ -582,6 +582,50 @@ ggsave("results/knn/knnByGender.png", plot = knn_gender_plot)
 # Save the trained model for later evaluation
 saveRDS(knn_model, "results/models/cardio_knn_model.rds")
 print("💾 KNN model trained and saved as cardio_knn_model.rds")
+
+
+# SECTION SIX-C: Creation and Evaluation of a Random Forest Model
+# Random Forest is an ensemble method that builds multiple decision trees and merges them for better accuracy and control over overfitting.
+
+
+
+# Make sure cardio is a factor for classification
+trainingData$cardio <- as.factor(trainingData$cardio)
+testData$cardio <- as.factor(testData$cardio)
+
+# Train the Random Forest model
+rf_model <- randomForest(cardio ~ ., data = trainingData, ntree = 100, importance = TRUE)
+
+# Predict classes
+rf_predictions <- predict(rf_model, testData, type = "class")
+
+# Evaluate using confusion matrix
+rf_conf_matrix <- confusionMatrix(
+  factor(rf_predictions, levels = levels(testData$cardio)),
+  factor(testData$cardio, levels = levels(testData$cardio))
+)
+print("📊 Confusion Matrix for Random Forest:")
+print(rf_conf_matrix)
+
+# Variable importance plot
+varImpPlot(rf_model, main = "Random Forest - Variable Importance")
+
+# Predict probabilities for ROC & AUC
+rf_probs <- predict(rf_model, testData, type = "prob")[,2]
+rf_roc <- roc(testData$cardio, rf_probs)
+rf_auc <- auc(rf_roc)
+
+# Print AUC
+print(paste("🔥 AUC for Random Forest:", rf_auc))
+
+# Save ROC plot
+rf_roc_plot <- ggroc(rf_roc) + ggtitle("ROC Curve for Random Forest Model")
+ggsave("results/randomforest/roc.png", plot = rf_roc_plot)
+
+# Save model
+saveRDS(rf_model, "results/models/cardio_randomforest_model.rds")
+print("💾 Random Forest model saved as cardio_randomforest_model.rds")
+
 
 # SECTION SEVEN: Clustering model
 # Will work on this next, I think since there's such an emphasis in the labs on this it would be the best move to create this
