@@ -1,0 +1,37 @@
+
+# SECTION EIGHT: Random Forest Model
+
+# Random Forest using trainingData and testData already in memory
+
+# Build the Random Forest model
+rf_model <- randomForest(cardio ~ ., data = trainingData, ntree = 100, importance = TRUE)
+
+# Print model summary
+print(rf_model)
+
+# Predict on test data
+rf_predictions <- predict(rf_model, testData, type = "class")
+
+# Confusion Matrix
+rf_conf_matrix <- confusionMatrix(rf_predictions, testData$cardio)
+print(rf_conf_matrix)
+
+# Variable importance plot
+varImpPlot(rf_model, main = "Variable Importance in Random Forest")
+
+# Save the model
+saveRDS(rf_model, "results/models/cardio_randomforest_model.rds")
+print("Random Forest model saved as cardio_randomforest_model.rds")
+
+# Optional: Export variable importance to CSV
+var_imp <- importance(rf_model)
+write.csv(var_imp, "results/randomforest/variable_importance.csv", row.names = TRUE)
+
+# ROC Curve and AUC for Random Forest
+rf_probs <- predict(rf_model, testData, type = "prob")[,2]
+rf_roc <- roc(testData$cardio, rf_probs)
+rf_roc_plot <- ggroc(rf_roc) + ggtitle("ROC Curve for Random Forest Model")
+ggsave("results/randomforest/roc.png", plot = rf_roc_plot)
+
+# Print AUC (not rounded for precision)
+print(paste("AUC for Random Forest:", auc(rf_roc)))
