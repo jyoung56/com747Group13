@@ -541,12 +541,9 @@ saveRDS(log_model, "results/models/cardio_logistic_model.rds")
 
 print("Logistic Regression model created and saved as cardio_logistic_model.rds")
 
-# SECTION SIX-B: Creation and Evaluation of a K-Nearest Neighbors (KNN) Model
+# SECTION SEVEN: Creation and Evaluation of a K-Nearest Neighbors (KNN) Model
 # We're using KNN to classify whether a person has cardiovascular disease based on all available features.
 # This approach looks at the 'k' nearest patients and makes a prediction based on what class most of them belong to.
-
-# Load caret if not already loaded
-library(caret)
 
 # Train the KNN model using 10-fold cross-validation
 # We scale the data to ensure fairness in distance calculations
@@ -559,7 +556,7 @@ knn_predictions <- predict(knn_model, testData)
 knn_conf_matrix <- confusionMatrix(knn_predictions, testData$cardio)
 
 # Display the results
-print("📊 Confusion Matrix for KNN Model:")
+print("Confusion Matrix for KNN Model:")
 print(knn_conf_matrix)
 
 # Visualize predicted CVD status across BMI 
@@ -581,12 +578,11 @@ ggsave("results/knn/knnByGender.png", plot = knn_gender_plot)
 
 # Save the trained model for later evaluation
 saveRDS(knn_model, "results/models/cardio_knn_model.rds")
-print("💾 KNN model trained and saved as cardio_knn_model.rds")
+print("KNN model trained and saved as cardio_knn_model.rds")
 
 
-# SECTION SIX-C: Creation and Evaluation of a Random Forest Model
+# SECTION EIGHT: Creation and Evaluation of a Random Forest Model
 # Random Forest is an ensemble method that builds multiple decision trees and merges them for better accuracy and control over overfitting.
-
 
 
 # Make sure cardio is a factor for classification
@@ -604,7 +600,7 @@ rf_conf_matrix <- confusionMatrix(
   factor(rf_predictions, levels = levels(testData$cardio)),
   factor(testData$cardio, levels = levels(testData$cardio))
 )
-print("📊 Confusion Matrix for Random Forest:")
+print("Confusion Matrix for Random Forest:")
 print(rf_conf_matrix)
 
 # Variable importance plot
@@ -616,7 +612,7 @@ rf_roc <- roc(testData$cardio, rf_probs)
 rf_auc <- auc(rf_roc)
 
 # Print AUC
-print(paste("🔥 AUC for Random Forest:", rf_auc))
+print(paste("AUC for Random Forest:", rf_auc))
 
 # Save ROC plot
 rf_roc_plot <- ggroc(rf_roc) + ggtitle("ROC Curve for Random Forest Model")
@@ -624,7 +620,7 @@ ggsave("results/randomforest/roc.png", plot = rf_roc_plot)
 
 # Save model
 saveRDS(rf_model, "results/models/cardio_randomforest_model.rds")
-print("💾 Random Forest model saved as cardio_randomforest_model.rds")
+print("Random Forest model saved as cardio_randomforest_model.rds")
 
 
 # SECTION SEVEN: Clustering model
