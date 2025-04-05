@@ -12,7 +12,7 @@ invisible(sapply(packages, install_if_missing))
 
 # SECTION ONE: Loading the dataset
 
-# Load the dataset  (make sure cardio_train.csv is in your working directory)
+# Load the dataset  (pleasenmake sure cardio_train.csv is in your working directory)
 data <- read.csv("data/cardio_train.csv", sep = ";")
 
 head(data)
@@ -402,7 +402,8 @@ print("Data splitting completed. Datasets saved as testData.csv and trainingData
 # We need to consider why we've used this and alternative things
 # Do we want to see if we can predict it based on only one category like age or BMI?
 # This model has an accuracy of roughly 0.7279 which is pretty decent! 
-# This is adapted from the lab with the logistic regression tutorial & the confusionMatrixModel script
+# This is adapted from the lab with the logistic regression tutorial
+# cholesterol well above normal coming up as NA
 
 log_model <- glm(cardio ~., data= trainingData, family=binomial(link="logit"))
 
@@ -544,6 +545,9 @@ print("Logistic Regression model created and saved as cardio_logistic_model.rds"
 # SECTION SEVEN: Creation and Evaluation of a K-Nearest Neighbors (KNN) Model
 # We're using KNN to classify whether a person has cardiovascular disease based on all available features.
 # This approach looks at the 'k' nearest patients and makes a prediction based on what class most of them belong to.
+# THIS DOESN'T WORK: "you are trying to do regression, binary outcome, 2 level factor as outcome column"
+# ALSO ISSUE WITH CONF MATRIX HERE, BUT NOT SURE IF BECAUSE OF MODEL
+# NEEDS ROC, AUC AND SUMMARY, PROB CONF INTERVALS
 
 # Train the KNN model using 10-fold cross-validation
 # We scale the data to ensure fairness in distance calculations
@@ -583,12 +587,14 @@ print("KNN model trained and saved as cardio_knn_model.rds")
 
 # SECTION EIGHT: Creation and Evaluation of a Random Forest Model
 # Random Forest is an ensemble method that builds multiple decision trees and merges them for better accuracy and control over overfitting.
-
+# NEEDS MORE STATS FOR EVAL: REMEMBER TO ADD SUMMARY, PROB CONF INTERVALS TOO
+# DOESN'T WORK
 
 # Make sure cardio is a factor for classification
 trainingData$cardio <- as.factor(trainingData$cardio)
 testData$cardio <- as.factor(testData$cardio)
 
+# Error in randomForest(cardio ~ ., data = trainingData, ntree = 100, importance = TRUE) : could not find function "randomForest"
 # Train the Random Forest model
 rf_model <- randomForest(cardio ~ ., data = trainingData, ntree = 100, importance = TRUE)
 
