@@ -585,48 +585,77 @@ saveRDS(knn_model, "results/models/cardio_knn_model.rds")
 print("KNN model trained and saved as cardio_knn_model.rds")
 
 
-# SECTION EIGHT: Creation and Evaluation of a Random Forest Model
-# Random Forest is an ensemble method that builds multiple decision trees and merges them for better accuracy and control over overfitting.
-# NEEDS MORE STATS FOR EVAL: REMEMBER TO ADD SUMMARY, PROB CONF INTERVALS TOO
-# DOESN'T WORK
 
-# Make sure cardio is a factor for classification
+# SECTION SIX-C: Creation and Evaluation of a Random Forest Model
+
+# Load required package
+library(randomForest)
+library(pROC)
+
+# Ensure cardio is treated as factor for classification
 trainingData$cardio <- as.factor(trainingData$cardio)
 testData$cardio <- as.factor(testData$cardio)
 
-# Error in randomForest(cardio ~ ., data = trainingData, ntree = 100, importance = TRUE) : could not find function "randomForest"
 # Train the Random Forest model
 rf_model <- randomForest(cardio ~ ., data = trainingData, ntree = 100, importance = TRUE)
 
-# Predict classes
-rf_predictions <- predict(rf_model, testData, type = "class")
+# Save the trained model
+saveRDS(rf_model, "results/models/cardio_randomforest_model.rds")
+print(" Random Forest model saved as cardio_randomforest_model.rds")
 
-# Evaluate using confusion matrix
+# --- Predictions ---
+rf_predictions <- predict(rf_model, testData, type = "class")         # Predicted classes
+rf_probs <- predict(rf_model, testData, type = "prob")[,2]            # Probabilities for class 1
+
+# --- Confusion Matrix ---
 rf_conf_matrix <- confusionMatrix(
   factor(rf_predictions, levels = levels(testData$cardio)),
   factor(testData$cardio, levels = levels(testData$cardio))
 )
-print("Confusion Matrix for Random Forest:")
+print("Confusion Matrix for Random Forest Model:")
 print(rf_conf_matrix)
 
-# Variable importance plot
-varImpPlot(rf_model, main = "Random Forest - Variable Importance")
-
-# Predict probabilities for ROC & AUC
-rf_probs <- predict(rf_model, testData, type = "prob")[,2]
+# --- ROC & AUC ---
 rf_roc <- roc(testData$cardio, rf_probs)
 rf_auc <- auc(rf_roc)
-
-# Print AUC
 print(paste("AUC for Random Forest:", rf_auc))
 
 # Save ROC plot
 rf_roc_plot <- ggroc(rf_roc) + ggtitle("ROC Curve for Random Forest Model")
 ggsave("results/randomforest/roc.png", plot = rf_roc_plot)
 
-# Save model
-saveRDS(rf_model, "results/models/cardio_randomforest_model.rds")
-print("Random Forest model saved as cardio_randomforest_model.rds")
+# --- Variable Importance ---
+varImpPlot(rf_model, main = "Random Forest - Variable Importance")
+write.csv(importance(rf_model), "results/randomforest/variable_importance.csv")
+
+# --- Probability Summary with Confidence Intervals ---
+# Bootstrap confidence interval for mean predicted probabilities
+rf_ci <- t.test(rf_probs ~ testData$cardio)$conf.int
+print(" 95% Confidence Interval for Predicted Probabilities (CVD vs No CVD):")
+print(rf_ci)
+
+# Save ROC stats and confidence interval summary
+rf_eval <- data.frame(
+  Accuracy = rf_conf_matrix$overall["Accuracy"],
+  Kappa = rf_conf_matrix$overall["Kappa"],
+  Sensitivity = rf_conf_matrix$byClass["Sensitivity"],
+  Specificity = rf_conf_matrix$byClass["Specificity"],
+  AUC = as.numeric(rf_auc),
+  CI_Lower = rf_ci[1],
+  CI_Upper = rf_ci[2]
+)
+
+write.csv(rf_eval, "results/randomforest/evaluation_summary.csv", row.names = FALSE)
+print("Evaluation summary for Random Forest saved to results/randomforest/evaluation_summary.csv")
+
+# Optional: print summary table to console
+print(rf_eval)
+
+
+
+
+
+
 
 
 # SECTION SEVEN: Clustering model
