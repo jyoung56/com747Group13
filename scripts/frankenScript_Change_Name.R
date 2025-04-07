@@ -1,5 +1,5 @@
 # IMPORTING AND LOADING LIBRARIES
-packages <- c("tidyverse", "ggplot2", "dplyr", "DataExplorer", "caret", "corrplot","pROC")
+packages <- c("tidyverse", "ggplot2", "dplyr", "DataExplorer", "caret", "corrplot","pROC", "randomForest")
 install_if_missing <- function(p) {
   if (!require(p, character.only = TRUE)) {
     install.packages(p, dependencies = TRUE)
@@ -421,6 +421,9 @@ log_conf_matrix <- confusionMatrix(
 )
 
 print(log_conf_matrix)
+# Get F1 from the confusion matrix
+log_conf_matrix$byClass["F1"]
+
 
 # Printing a summary of the model here
 summary(log_model)
@@ -545,23 +548,51 @@ print("Logistic Regression model created and saved as cardio_logistic_model.rds"
 # SECTION SEVEN: Creation and Evaluation of a K-Nearest Neighbors (KNN) Model
 # We're using KNN to classify whether a person has cardiovascular disease based on all available features.
 # This approach looks at the 'k' nearest patients and makes a prediction based on what class most of them belong to.
-# THIS DOESN'T WORK: "you are trying to do regression, binary outcome, 2 level factor as outcome column"
-# ALSO ISSUE WITH CONF MATRIX HERE, BUT NOT SURE IF BECAUSE OF MODEL
 # NEEDS ROC, AUC AND SUMMARY, PROB CONF INTERVALS
 
 # Train the KNN model using 10-fold cross-validation
 # We scale the data to ensure fairness in distance calculations
+# The issue here is because cardio is being treated as numeric instead of categorical
+# Fixed this
+trainingData$cardio <- as.factor(trainingData$cardio)
+testData$cardio <- as.factor(testData$cardio)
+
 knn_model <- train(cardio ~ ., data = trainingData, method = "knn",preProcess = c("center", "scale"), trControl = trainControl(method = "cv", number = 10))
 
 # Make predictions on the test set
 knn_predictions <- predict(knn_model, testData)
+knn_probs <- predict(knn_model, testData, type = "prob")[,2]            # Probabilities for class 1
 
+# Performs best when using 9 nearest neighbours
+print(knn_model)
+
+# FIXED THIS
 # Evaluate the model using a confusion matrix
-knn_conf_matrix <- confusionMatrix(knn_predictions, testData$cardio)
+knn_conf_matrix <- confusionMatrix(
+  factor(knn_predictions, levels = levels(testData$cardio)),
+  factor(testData$cardio, levels = levels(testData$cardio))
+)
 
 # Display the results
 print("Confusion Matrix for KNN Model:")
 print(knn_conf_matrix)
+
+
+# Printing a summary of the model here
+summary(knn_model)
+
+
+# AUC ROC - Sensitivity vs specificity
+# 0.7629
+knn_roc_object <- roc( testData$cardio, knn_probs)
+knn_rocCurve <- ggroc(knn_roc_object) + ggtitle("ROC Curve for K-NN Model")
+ggsave("results/knn/roc.png", plot = rocCurve)
+
+# AUC
+auc(knn_roc_object)
+
+knn_conf_matrix$byClass["F1"]
+
 
 # Visualize predicted CVD status across BMI 
 knn_bmi_plot <- ggplot(testData, aes(x = bmi, fill = knn_predictions)) +
@@ -586,11 +617,8 @@ print("KNN model trained and saved as cardio_knn_model.rds")
 
 
 
-# SECTION SIX-C: Creation and Evaluation of a Random Forest Model
+# SECTION EIGHT: Creation and Evaluation of a Random Forest Model
 
-# Load required package
-library(randomForest)
-library(pROC)
 
 # Ensure cardio is treated as factor for classification
 trainingData$cardio <- as.factor(trainingData$cardio)
@@ -614,6 +642,10 @@ rf_conf_matrix <- confusionMatrix(
 )
 print("Confusion Matrix for Random Forest Model:")
 print(rf_conf_matrix)
+
+# Get F1
+rf_conf_matrix$byClass["F1"]
+
 
 # --- ROC & AUC ---
 rf_roc <- roc(testData$cardio, rf_probs)
@@ -648,19 +680,18 @@ rf_eval <- data.frame(
 write.csv(rf_eval, "results/randomforest/evaluation_summary.csv", row.names = FALSE)
 print("Evaluation summary for Random Forest saved to results/randomforest/evaluation_summary.csv")
 
-# Optional: print summary table to console
+# Print summary table to console
 print(rf_eval)
 
 
+# SECTION NINE: Any further eval & model comparison
 
+# Reckon it's useful to combine all rocs into one plot
+roc_list <- list(roc_object, knn_roc_object,rf_roc)
 
-
-
-
-
-# SECTION SEVEN: Clustering model
-# Will work on this next, I think since there's such an emphasis in the labs on this it would be the best move to create this
-# Especially given the last guest seminar which was fascinating, but I don't think we need to be worrying about latent factors
-# as we're trying to predict a non-latent factor
-
+# Create the plot for all ROC curves
+# 1= Log, 2= knn, 4= rf
+all_rocs_plot <- ggroc(roc_list) + 
+  ggtitle("The ROC curves for Models") 
+ggsave("results/all_rocs_plot.png", plot =all_rocs_plot)
 
