@@ -428,6 +428,23 @@ log_conf_matrix$byClass["F1"]
 # Printing a summary of the model here
 summary(log_model)
 
+
+# Get feature importance using p-values
+p_values <- model_summary$coefficients[-1, 4]
+importance_df_p <- data.frame(
+  Feature = names(p_values),
+  P_Value = p_values,
+  Importance = -log10(p_values) 
+)
+importance_df_p <- importance_df_p[order(-importance_df_p$Importance),]
+
+most_significant_feature <- importance_df_p[1, "Feature"]
+most_significant_pvalue <- importance_df_p[1, "P_Value"]
+
+# Print paste seems to work for formatting strings
+print(paste("Most statistically significant feature:", most_significant_feature, 
+            "with p-value:", most_significant_pvalue))
+
 # computing odds ratios and confidence intervals
 exp(coef(log_model))
 exp(cbind(OR = coef(log_model), confint(log_model)))
@@ -610,6 +627,17 @@ knn_gender_plot <- ggplot(testData, aes(x = gender, fill = knn_predictions)) + g
        y = "Proportion of Patients",
        fill = "Predicted CVD")
 ggsave("results/knn/knnByGender.png", plot = knn_gender_plot)
+
+# Get variable importance
+importance <- varImp(knn_model)
+importance_df$Feature <- rownames(importance_df)
+importance_df <- importance_df[order(-importance_df[,1]),]
+most_important_feature <- importance_df[1, "Feature"]
+most_important_value <- importance_df[1, 1]
+print(paste("Most important feature:", most_important_feature, 
+            "with importance value:", most_important_value))
+
+
 
 # Save the trained model for later evaluation
 saveRDS(knn_model, "results/models/cardio_knn_model.rds")
